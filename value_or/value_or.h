@@ -3,7 +3,7 @@
  * \brief  It contains the function: 
  *         value_or(T&& default_value, Args&&... to_test_v).
  *         It looks for a not null value in to_test_v. If it does not find it, 
- *         then value_or returns a default value. It is similar to a SQL 
+ *         then value_or returns default_value. It is similar to a SQL 
  *         coalesce function.
  * 
  * \author Roberto
