@@ -6,7 +6,7 @@ They must cover a specific need of C++ developers.
 If you like something just use it! If it does not cover completly what you need let me know, or just branch it and adjust it. 
 
 ## value_or
-The fist library is value_or, just one function. It is similar to the std::optional.value_or: it will return the first paramter not null, if it does not find it, then it return a default value. 
+The fist library is value_or, just one function. It is similar to the std::optional.value_or: it returns the the first paramter not null, if it does not find it, then it returns a default value. 
 It is very similar to a coalesce SQL function.
 
 ```c++
