@@ -42,5 +42,13 @@ int main()
 
     size_t r3 = s4::coalesce(ints, upvn, upv).size();
     std::cout << r3 << std::endl; // prints 0, the size of upv
+
+    auto l = []() noexcept -> int*
+    {
+        return nullptr;
+    };
+
+    const int r4 = s4::coalesce(10, l, pi);
+    std::cout << r4 << std::endl; // prints 5, the value of *pi
 }
 ```
