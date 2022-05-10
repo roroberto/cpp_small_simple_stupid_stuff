@@ -23,9 +23,9 @@ namespace s4 // Small Simple Stupid Stuff namespace
 
     /**
      * Concept that define a pointer of type PointerType that points to
-     * ValueType.
+     * ValueType. ValueType can be a function (an invocable).
      * It covers: raw pointers, std::unique_ptr, std:shared_ptr,
-     * std::weak_ptr, std::optional, std::null_ptr, NULL, 0 and any other
+     * std::weak_ptr, std::optional, std::null_ptr, and any other
      * class that has the operators * and bool.
      */
     template<typename PointerType, typename ValueType>
@@ -62,7 +62,10 @@ namespace s4 // Small Simple Stupid Stuff namespace
     || std::same_as<std::nullptr_t, PointerType>; // to cover the case of null_ptr
 
 
-
+    /**
+     * Concept that define the requirements of the coalesce parameters, they can 
+     * be pointers or functions that return pointers.
+     */
     template<typename PointerType, typename ValueType>
     concept coalesce_param =
     requires(PointerType callable, ValueType)
@@ -71,18 +74,6 @@ namespace s4 // Small Simple Stupid Stuff namespace
     }
     || pointer_to<PointerType, ValueType>;
 
-
-    /**
-    * It looks for a not null value in to_test_v. If it does not find it, 
-    * then coalesce returns a default value. 
-    *
-    * \param default_value Value to return if all the values of to_test_v are null
-    * \param ...to_test_v The values to test for not null
-    * \return The first value not null of to_test_v, if no value of to_test_v is not null then default_value
-    */
-    //template<typename T, typename DT, coalesce_param<T>... Args>
-    //constexpr decltype(auto) coalesce(DT&& default_value, Args&&... to_test_v);
-    
 
     namespace coalesce_impl
     {
@@ -173,10 +164,6 @@ namespace s4 // Small Simple Stupid Stuff namespace
         requires callable_ptr_to<RT, PT> 
         constexpr decltype(auto) coalesce(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
 
-
-        //template<typename T, typename PT, typename... Args>
-        //requires function_returns_ptr<T, PT>
-        //constexpr T coalesce(T&& default_value, PT&& to_test_0, Args&&... to_test_v);
 
         /**
          * Specialized version of coalesce for nullptr_t.
@@ -284,32 +271,48 @@ namespace s4 // Small Simple Stupid Stuff namespace
         }
     }
 
-     
-    template<typename RT, typename DT, coalesce_param<RT>... Args>
-    requires std::convertible_to< DT, std::remove_reference_t<RT> >
-    constexpr decltype(auto) coalesce(DT&& default_value, Args&&... to_test_v)
+    /**
+    * It looks for a not null value in to_test_v. If it does
+    * not find it, then coalesce returns default_value. It is similar to
+    * a SQL coalesce function.
+      *
+    * \param default_value Value to return if to_test_0 and all to_test_v are null
+    * \param ...to_test_v Next values to check. 
+    * \return  It looks for the first element of to_test_v not null. 
+    *           If all the values are null then coalesce returns default_value.
+    */
+    template<typename ReturnType, typename DefaultType, coalesce_param<ReturnType>... Args>
+    requires std::convertible_to< DefaultType, std::remove_reference_t<ReturnType> >
+    constexpr decltype(auto) coalesce(DefaultType&& default_value, Args&&... to_test_v)
     {
-        return s4::coalesce_impl::coalesce<RT, DT, Args...>(
-            std::forward<DT>(default_value),
+        return s4::coalesce_impl::coalesce<ReturnType, DefaultType, Args...>(
+            std::forward<DefaultType>(default_value),
             std::forward<Args>(to_test_v)...);
     }
 
-    template<typename DT, coalesce_param<DT>... Args>
-    requires (!std::invocable<DT>) 
-    constexpr decltype(auto) coalesce(DT&& default_value, Args&&... to_test_v)
+    /**
+     * Specialized version of coalesce: the retrun type is a reference of 
+     * DefaultType and DefaultType is not invocable.
+     */
+    template<typename DefaultType, coalesce_param<DefaultType>... Args>
+    requires (!std::invocable<DefaultType>)
+    constexpr decltype(auto) coalesce(DefaultType&& default_value, Args&&... to_test_v)
     {
-        return s4::coalesce_impl::coalesce<DT, DT, Args...>(
-            std::forward<DT>(default_value), 
+        return s4::coalesce_impl::coalesce<DefaultType, DefaultType, Args...>(
+            std::forward<DefaultType>(default_value),
             std::forward<Args>(to_test_v)...);
     }
 
-    
-    template<typename DT, coalesce_param<DT>... Args>
-    requires std::invocable<DT>
-    constexpr std::invoke_result_t<DT> coalesce(DT&& default_value, Args&&... to_test_v) 
+    /**
+     * Specialized version of coalesce: DefaultType is invocable, the return type of 
+     * coalesce is the same return type of the function passed as default parameter.
+     */
+    template<typename DefaultType, coalesce_param<DefaultType>... Args>
+    requires std::invocable<DefaultType>
+    constexpr std::invoke_result_t<DefaultType> coalesce(DefaultType&& default_value, Args&&... to_test_v)
     {
-        return s4::coalesce_impl::coalesce<std::invoke_result_t<DT>, DT, Args...>(
-                std::forward<DT>(default_value),
+        return s4::coalesce_impl::coalesce<std::invoke_result_t<DefaultType>, DefaultType, Args...>(
+                std::forward<DefaultType>(default_value),
                 std::forward<Args>(to_test_v)...) ;
     }
     
