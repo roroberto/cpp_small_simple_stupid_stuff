@@ -1,7 +1,10 @@
 #include <optional>
 #include <vector>
 #include <iostream>
+#include <vector>
 #include <functional>
+#include <numeric>
+#include <ranges>
 #include "coalesce.h"
 
 
@@ -24,6 +27,11 @@ int* calc_value_null() noexcept
 }
 
 
+struct record
+{
+    std::optional<int> v1;
+    std::optional<int> v2;
+};
 
 
 int main()
@@ -85,7 +93,23 @@ int main()
 
     const int r9 = s4::coalesce(calc_default_value, pi);
     std::cout << r9 << std::endl;
- 
+
+    std::vector<record> s{ 
+        {10, {}}, 
+        {{}, 20},
+        {{}, {}}
+    };
+    
+    int r10 = std::accumulate(s.begin(), s.end(), 0,
+        [](int i, const record& r) { return i + s4::coalesce(0, r.v1, r.v2);  });
+    std::cout << r10 << std::endl;
+
+    for (int i : s | std::views::transform([](const record& r) { return s4::coalesce(0, r.v1, r.v2); }))
+    {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
+
     return 0;
 }
 
