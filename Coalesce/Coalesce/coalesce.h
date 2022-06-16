@@ -81,12 +81,12 @@ namespace s4 // Small Simple Stupid Stuff namespace
         concept raw_pointer_to = requires(ValueType, PointerType pointer)
         {
             {*pointer} -> std::convertible_to<ValueType>;
-            {!pointer} noexcept;
+            {!pointer};
         }
         || requires(ValueType value, PointerType pointer)
         {
             {*pointer} -> std::convertible_to<decltype(value())>;
-            {!pointer} noexcept;
+            {!pointer};
         };
 
         template<typename ValueType, typename PointerType>
@@ -204,9 +204,12 @@ namespace s4 // Small Simple Stupid Stuff namespace
         requires raw_pointer_to<RT, PT> 
         constexpr decltype(auto) coalesce(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
         {
-            return  to_test_0 ? static_cast<RT>(*to_test_0) : coalesce<RT, DT, Args...>(
-                std::forward<DT>(default_value),
-                std::forward<Args>(to_test_v)...);
+            return  
+                !to_test_0 
+                    ? coalesce<RT, DT, Args...>(
+                        std::forward<DT>(default_value),
+                        std::forward<Args>(to_test_v)...)
+                    : static_cast<RT>(*to_test_0);
         }
 
 
@@ -227,9 +230,11 @@ namespace s4 // Small Simple Stupid Stuff namespace
         requires std::convertible_to< PT, std::remove_reference_t<RT> > 
         constexpr decltype(auto) coalesce(DT&& default_value, std::shared_ptr<PT> to_test_0, Args&&... to_test_v)
         {
-            return  to_test_0 ? static_cast<RT>(*to_test_0) : coalesce<RT, DT, Args...>(
-                std::forward<DT>(default_value),
-                std::forward<Args>(to_test_v)...);
+            return !to_test_0 
+                ? coalesce<RT, DT, Args...>(
+                    std::forward<DT>(default_value),
+                    std::forward<Args>(to_test_v)...)
+                : static_cast<RT>(*to_test_0);
         }
 
 
