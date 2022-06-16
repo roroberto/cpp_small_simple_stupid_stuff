@@ -1,5 +1,5 @@
-#include "gtest/gtest.h"
 #include "../Coalesce/coalesce.h"
+#include "gtest/gtest.h"
 #include <optional>
 
 using namespace s4;
