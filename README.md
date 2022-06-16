@@ -50,5 +50,15 @@ int main()
 
     const int r4 = s4::coalesce(10, l, pi);
     std::cout << r4 << std::endl; // prints 5, the value of *pi
+
+    std::vector<record> s{ 
+        {10, {}}, 
+        {{}, 20},
+        {{}, {}}
+    };
+    
+    int r5 = std::accumulate(s.begin(), s.end(), 0,
+        [](int i, const record& r) { return i + s4::coalesce(0, r.v1, r.v2);  });
+    std::cout << r5 << std::endl; // prints 30
 }
 ```
