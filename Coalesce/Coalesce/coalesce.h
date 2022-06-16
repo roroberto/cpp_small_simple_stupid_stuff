@@ -16,6 +16,7 @@
 #include <utility>
 #include <concepts>
 #include <memory>
+#include <functional>
 
 
 namespace s4 // Small Simple Stupid Stuff namespace 
@@ -237,7 +238,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
                 : static_cast<RT>(*to_test_0);
         }
 
-
+        
         template<typename... T>
         struct is_std_function : std::false_type {};
 
@@ -264,7 +265,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
                 std::forward<std::invoke_result_t<PT>>(to_test_0()),
                 std::forward<Args>(to_test_v)...);
         }
-
+        
 
 
         template<typename RT, typename DT, typename PT, typename... Args>
