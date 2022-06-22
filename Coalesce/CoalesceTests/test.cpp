@@ -244,40 +244,28 @@ void test_ptr_coalesce(DT &default_value, T &value, PT &p, PT &n)
     EXPECT_EQ(coalesce(default_value, n, t(p)), value);
     EXPECT_EQ(coalesce(default_value, t(p), n), value);
     EXPECT_EQ(coalesce(t(default_value), p, n), value);
-
-
-    EXPECT_EQ(t(coalesce(default_value, n)), default_value);
-    EXPECT_EQ(t(coalesce(default_value, p)), value);
-    EXPECT_EQ(t(coalesce(default_value, nullptr, p)), value);
-    EXPECT_EQ(t(coalesce(default_value, n, p)), value);
-    EXPECT_EQ(t(coalesce(default_value, p, n)), value);
-
     
-    EXPECT_EQ(coalesce(func_obj{ default_value }, n), default_value);
-    
-    func_obj fp{ p };
-    EXPECT_EQ(coalesce(default_value,fp), value);
-    EXPECT_EQ(coalesce(default_value, func_obj{ p }), value);
-    EXPECT_EQ(coalesce(default_value, func_obj{ n }), default_value);
-    EXPECT_EQ(coalesce(func_obj{ default_value }, fp), value);
-    EXPECT_EQ(coalesce(func_obj{ default_value }, func_obj{ p }), value);
-    EXPECT_EQ(coalesce(func_obj{ default_value }, func_obj{ n }), default_value);
-    /*
-    std::function<decltype(fp)> std_fun_ni;
-    EXPECT_EQ(coalesce(default_value, std_fun_ni), default_value);
-    EXPECT_EQ(coalesce(default_value, std_fun_ni, fp), value);
-
-    func_obj fpn{ n };
-    std::function<decltype(fp)> std_fun_n{ fpn };
-    EXPECT_EQ(coalesce(default_value, std_fun_n), default_value);
-    EXPECT_EQ(coalesce(default_value, std_fun_n, fp), value);
+    if constexpr (!std::is_same< PT, std::weak_ptr<T>>::value)
+    {
+        EXPECT_EQ(t(coalesce(default_value, n)), default_value);
+        EXPECT_EQ(t(coalesce(default_value, p)), value);
+        EXPECT_EQ(t(coalesce(default_value, nullptr, p)), value);
+        EXPECT_EQ(t(coalesce(default_value, n, p)), value);
+        EXPECT_EQ(t(coalesce(default_value, p, n)), value);
 
 
-    std::function<decltype(fp)> std_fun{ fp };
-    EXPECT_EQ(coalesce(default_value, std_fun), value);
-    EXPECT_EQ(coalesce(default_value, std_fun, fp), value);
-    */
+        EXPECT_EQ(coalesce(func_obj{ default_value }, n), default_value);
+
+        func_obj fp{ p };
+        EXPECT_EQ(coalesce(default_value, fp), value);
+        EXPECT_EQ(coalesce(default_value, func_obj{ p }), value);
+        EXPECT_EQ(coalesce(default_value, func_obj{ n }), default_value);
+        EXPECT_EQ(coalesce(func_obj{ default_value }, fp), value);
+        EXPECT_EQ(coalesce(func_obj{ default_value }, func_obj{ p }), value);
+        EXPECT_EQ(coalesce(func_obj{ default_value }, func_obj{ n }), default_value);
+    }
 }
+
 
 
 template<typename DT, typename T1, typename T2, typename T3, typename T4>
@@ -401,4 +389,23 @@ TEST(Testcoalesce, DerivedObj)
     D d3{ 6,7,8,9 };
     B b4{ 8,9 };
     test_coalesce(a, b1, c2, d3, b4);
+}
+
+
+int* fnull() { return nullptr; }
+int* fint(int& i) { return &i; }
+
+TEST(Testcoalesce, StdFunction)
+{
+
+    std::function<int* ()> pfNotInit;
+    EXPECT_EQ(coalesce(10, pfNotInit), 10);
+    
+    std::function<int* ()> pfNull = fnull;
+    EXPECT_EQ(coalesce(10, pfNull), 10);
+    
+    std::function<int* (int&)> pfInt = fint;
+    int i = 11;
+    EXPECT_EQ(coalesce(10, pfInt(i)), 11);
+    EXPECT_EQ(coalesce(10, pfNotInit, pfNull, pfInt(i)), 11);
 }
