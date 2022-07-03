@@ -133,7 +133,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
          */
         template<typename RT, typename DT, typename PT, typename... Args>
         requires weak_pointer_to<RT, PT> 
-        constexpr RT coalesce(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
+        constexpr std::remove_reference_t<RT> coalesce(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
         
 
 
@@ -216,7 +216,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
 
         template<typename RT, typename DT, typename PT, typename... Args>
         requires weak_pointer_to<RT, PT> 
-        constexpr RT coalesce(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
+        constexpr std::remove_reference_t<RT> coalesce(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
         {
             if (auto t = to_test_0.lock())
                 return *t;
@@ -297,7 +297,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
     }
 
     /**
-     * Specialized version of coalesce: the retrun type is a reference of 
+     * Specialized version of coalesce: the return type is a reference of 
      * DefaultType and DefaultType is not invocable.
      */
     template<typename DefaultType, coalesce_param<DefaultType>... Args>

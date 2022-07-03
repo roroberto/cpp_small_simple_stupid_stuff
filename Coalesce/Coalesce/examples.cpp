@@ -103,7 +103,7 @@ int main()
 
     // not only the default value can be a pointer to a function, also any other parameter. 
     // The functions will be called one after the other until an not null value is found.       
-    const int r5 = s4::coalesce(10, calc_value_null, calc_value);
+    const int r5 = s4::coalesce(10, calc_value_null, calc_value, pi);
     std::cout << r5 << std::endl; // prints 123, the value returned by calc_value
 
 
@@ -115,7 +115,7 @@ int main()
 
     
     const int r6 = s4::coalesce(10, l_null, calc_value);
-    std::cout << r6 << std::endl;  // prints 123, l_null returns nullptr, therefore calc_value is called, that retruns 123
+    std::cout << r6 << std::endl;  // prints 123, l_null returns nullptr, therefore calc_value is called, that returns 123
 
    
     // also std::function can be passed, in this case it will test also that the object of type std::function points to a function
