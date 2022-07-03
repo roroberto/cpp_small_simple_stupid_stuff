@@ -163,7 +163,7 @@ int main()
         { return i + 
             s4::coalesce(0, r.v1, 
                 test_project(r.v2, [](int i) {return i * 1000; })); // with the help of test_project and a lambda 
-                                                                         // we canvert the second field in grams
+                                                                    // we convert the second field in grams
         }
     );
     std::cout << r9 << std::endl;  // prints 3000 = 1000 + 2 * 1000
