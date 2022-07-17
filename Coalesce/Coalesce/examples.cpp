@@ -86,6 +86,10 @@ int main()
     int r2b = s4::coalesce(calc_default_value, pi);
     std::cout << r2b << std::endl; // prints 5, the value pointed by pi 
 
+    // it is possible to specify all type of the return value, the default values and of all the arguments
+    int r2c = s4::coalesce<int, int&, int*&, std::optional<int>&>(i, pi, o);
+    std::cout << r2c << std::endl; // prints 5, the value pointed by pi 
+
     
     // other examples with more complex types
     std::vector<int> ints{ 0,1,2,3,4,5 };
@@ -129,7 +133,11 @@ int main()
     const int r7b = s4::coalesce(3, fn); 
     std::cout << r7b << std::endl; // it prints 2, the default value because fn points to no function
 
-        
+    fu fd = calc_value;
+    std::unique_ptr<fu> pf = std::make_unique<fu>(fn);
+
+    
+
     // let's say that we have a data feed that we want to process, and for each record we must use the 1st value not null, if there is
     std::vector<record> s1
     { 
