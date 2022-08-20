@@ -90,7 +90,13 @@ int main()
     int r2c = s4::value_or<int, int&, int*&, std::optional<int>&>(i, pi, o);
     std::cout << r2c << std::endl; // prints 5, the value pointed by pi 
 
-    
+    // the below lines are equivalent 
+    int r2d = s4::value_or(2, o);
+    int r2e = o.value_or(2);
+
+    std::cout << r2d << "=" << r2e << '\n';
+
+
     // other examples with more complex types
     std::vector<int> ints{ 0,1,2,3,4,5 };
     std::unique_ptr<std::vector<int>> upvn;
