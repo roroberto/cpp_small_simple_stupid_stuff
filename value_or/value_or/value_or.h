@@ -1,10 +1,12 @@
-/*****************************************************************//**
+/**********************************************************************
  * \file   value_or.h
  * \brief  It contains the function: 
  *         value_or(T&& default_value, Args&&... to_test_v).
- *         It looks for a not null value in to_test_v. If it does not find it, 
- *         then value_or returns default_value. It is similar to the SQL 
- *         coalesce function.
+ *         It looks for an argument with value in to_test_v. 
+ *         If value_or does not find an argument with a value 
+ *         then it returns default_value. It is similar to the SQL
+ *         function coalesce. It is also similar to the method value_or 
+ *         of std::optional. 
  * 
  * \author Roberto
  * \date   July 2022
@@ -24,56 +26,64 @@ namespace s4 // Small Simple Stupid Stuff namespace
 
     /**
      * Concept that define a pointer of type PointerType that points to
-     * ValueType. ValueType can be a function (an invocable).
+     * ValueType. ValueType can be also an invocable, this is 
+     * needed if the default value is an invocable.
      * It covers: raw pointers, std::unique_ptr, std:shared_ptr,
      * std::weak_ptr, std::optional, std::null_ptr, and any other
      * class that has the operators * and bool.
      */
     template<typename PointerType, typename ValueType>
-    concept pointer_to = 
-    (    std::invocable<ValueType> 
-         &&
-         ( 
-            requires(PointerType pointer, ValueType value)  // Pointer must behave like a raw pointer to an object of class decltype(value())
+    concept value_or_pointer_to = 
+    (   std::invocable<ValueType>
+        &&
+        ( 
+            // Pointer must behave like a raw pointer to an object of class 
+            // decltype(value())
+            requires(PointerType pointer, ValueType value)  
             {
                 {!pointer};
                 {*pointer} -> std::convertible_to<decltype(value())>;
             }
-            || requires(PointerType pointer, ValueType value) // Pointer must behave like a weak_ptr that points to an object of class decltype(value())
+            // OR Pointer must behave like a weak_ptr that points to an object of 
+            // class decltype(value())
+            || requires(PointerType pointer, ValueType value) 
             {
                 {*pointer.lock()} -> std::convertible_to<decltype(value())>; 
             }
-         )
+        )
     )
     || 
     (   !std::invocable<ValueType>
         && 
         (
-            requires(PointerType pointer, ValueType)  // Pointer must behave like a raw pointer that points to a ValueType
+            // Pointer must behave like a raw pointer that points to a ValueType
+            requires(PointerType pointer, ValueType)  
             {
                 {!pointer};
                 {*pointer} -> std::convertible_to<ValueType>;
             }
-            || requires(PointerType pointer, ValueType) // Pointer must behave like a weak_ptr that points to a ValueType
+            // OR Pointer must behave like a weak_ptr that points to a ValueType
+            || requires(PointerType pointer, ValueType) 
             {
                 {*pointer.lock()} -> std::convertible_to<ValueType>;
             }
         )
     )
-    || std::same_as<std::nullptr_t, PointerType>; // to cover the case of null_ptr
+    // to cover the case of null_ptr
+    || std::same_as<std::nullptr_t, PointerType>; 
 
 
     /**
-     * Concept that define the requirements of the value_or parameters, they can 
-     * be pointers or functions that return pointers.
+     * Concept that define the requirements of the value_or parameters, 
+     * they can be pointers or functions that return pointers.
      */
     template<typename PointerType, typename ValueType>
     concept value_or_param =
     requires(PointerType callable, ValueType)
     {
-        {callable()} -> pointer_to<ValueType>;
+        {callable()} -> value_or_pointer_to<ValueType>;
     }
-    || pointer_to<PointerType, ValueType>;
+    || value_or_pointer_to<PointerType, ValueType>;
 
 
     namespace value_or_impl
@@ -99,7 +109,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
         template<typename ValueType, typename PointerType>
         concept callable_ptr_to = requires(PointerType callable, ValueType)
         {
-            {callable()}  -> pointer_to<ValueType>;
+            {callable()}  -> value_or_pointer_to<ValueType>;
         };
 
 

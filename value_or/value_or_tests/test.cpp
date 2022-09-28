@@ -229,7 +229,7 @@ struct func_obj
 };
 
 template<typename DT, typename T, typename PT>
-void test_ptr_value_or(DT &default_value, T &value, PT &p, PT &n)
+void test_ptr_value_or(DT &default_value, T &value, PT &p, PT &n, PT &empty_ptr)
 {
     EXPECT_EQ(value_or(default_value, n), default_value);
     EXPECT_EQ(value_or(default_value, p), value);
@@ -244,8 +244,10 @@ void test_ptr_value_or(DT &default_value, T &value, PT &p, PT &n)
     EXPECT_EQ(value_or(default_value, n, t(p)), value);
     EXPECT_EQ(value_or(default_value, t(p), n), value);
     EXPECT_EQ(value_or(t(default_value), p, n), value);
+
+    EXPECT_EQ(value_or(default_value, empty_ptr), default_value);
     
-    if constexpr (!std::is_same< PT, std::weak_ptr<T>>::value)
+    if constexpr (!std::is_same<PT, std::weak_ptr<T>>::value)
     {
         EXPECT_EQ(t(value_or(default_value, n)), default_value);
         EXPECT_EQ(t(value_or(default_value, p)), value);
@@ -278,11 +280,11 @@ void test_value_or(DT default_value, T1 init_value1, T2 init_value2, T3 init_val
     
     T1* p = &init_value1;
     T1* n = nullptr;
-    test_ptr_value_or(default_value, init_value1, p, n);
+    test_ptr_value_or(default_value, init_value1, p, n, n);
     
     T1* const cp = &init_value1;
     T1* const cpn = nullptr;
-    test_ptr_value_or(default_value, init_value1, cp, cpn);
+    test_ptr_value_or(default_value, init_value1, cp, cpn, cpn);
     EXPECT_EQ(value_or(default_value, ct(cp), ct(cpn)), init_value1);
     EXPECT_EQ(value_or(default_value, ct(cpn), ct(cp)), init_value1);
     EXPECT_EQ(ct(value_or(default_value, ct(cpn), ct(cp))), init_value1);
@@ -290,19 +292,24 @@ void test_value_or(DT default_value, T1 init_value1, T2 init_value2, T3 init_val
     
     std::unique_ptr<T2> up = std::make_unique<T2>(init_value2);
     std::unique_ptr<T2> upn = nullptr;
-    test_ptr_value_or(default_value, init_value2, up, upn);
+    std::unique_ptr<T2> u_empty;
+    test_ptr_value_or(default_value, init_value2, up, upn, u_empty);
         
     std::shared_ptr<T3> sp = std::make_shared<T3>(init_value3);
     std::shared_ptr<T3> spn = nullptr;
-    test_ptr_value_or(default_value, init_value3, sp, spn);
+    std::shared_ptr<T3> s_emptrty;
+    test_ptr_value_or(default_value, init_value3, sp, spn, s_emptrty);
 
     std::weak_ptr<T3> wp = sp;
     std::weak_ptr<T3> wpn = spn;
-    test_ptr_value_or(default_value, init_value3, wp, wpn);
+    std::weak_ptr<T3> w_empty;
+    test_ptr_value_or(default_value, init_value3, wp, wpn, w_empty);
+   
 
     std::optional<T4> o = init_value4;
     std::optional<T4> on = std::nullopt;
-    test_ptr_value_or(default_value, init_value4, o, on);
+    std::optional<T4> o_empty;
+    test_ptr_value_or(default_value, init_value4, o, on, o_empty);
 
     DT v = value_or(default_value, n, upn, spn, on, wpn);
     EXPECT_EQ(value_or(default_value, n, upn, spn, wpn, on), default_value);

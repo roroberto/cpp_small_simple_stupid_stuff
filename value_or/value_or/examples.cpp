@@ -34,6 +34,26 @@ private:
 };
 
 
+class test_string
+{
+public:
+    test_string(std::string_view v) : _s{ v } {}
+
+    operator bool () const noexcept
+    {
+        return !_s.empty();
+    }
+
+    const std::string operator *()
+    {
+        return _s;
+    }
+
+private:
+    const std::string _s;
+};
+
+
 
 struct struct_i
 {
@@ -70,8 +90,14 @@ int main()
 {
     int i = 5;
     int* pi = &i;
-    std::optional<int> o = 12;
     std::unique_ptr<int> up = std::make_unique<int>(3);
+
+    // the below lines are equivalent
+    int r0a = s4::value_or(i, pi, up);
+    int r0b = !pi ? (!up ? i : *up) : *pi;  // or r0b = pi ? *pi : (up ? *up : i), but value_or uses the operator! 
+    std::cout << r0a << "=" << r0b << std::endl;
+
+    std::optional<int> o = 12;
     std::shared_ptr<int> sp = std::make_shared<int>(4);
     std::weak_ptr<int> wp = sp;
 
@@ -86,15 +112,14 @@ int main()
     int r2b = s4::value_or(calc_default_value, pi);
     std::cout << r2b << std::endl; // prints 5, the value pointed by pi 
 
-    // it is possible to specify all type of the return value, the default values and of all the arguments
+    // it is possible to specify the type of the return value, of the the default value and of all the arguments
     int r2c = s4::value_or<int, int&, int*&, std::optional<int>&>(i, pi, o);
     std::cout << r2c << std::endl; // prints 5, the value pointed by pi 
 
     // the below lines are equivalent 
     int r2d = s4::value_or(2, o);
     int r2e = o.value_or(2);
-
-    std::cout << r2d << "=" << r2e << '\n';
+    std::cout << r2d << "=" << r2e << std::endl;
 
 
     // other examples with more complex types
@@ -187,6 +212,7 @@ int main()
     int r10 = s4::value_or(10, test_project(psi, &struct_i::getI));
     std::cout << r10 << std::endl;  // prints 15 the value of si.i
   
+    std::cout << s4::value_or(std::string("d"), test_string(""), test_string("v")) << std::endl;
      
     return 0;
 }
