@@ -16,7 +16,8 @@ template <typename Value, typename Proj>
 class test_project
 {
 public:
-    test_project(Value v, Proj proj) : _v{ v }, _proj{ proj } {}
+    test_project(Value v, Proj proj) 
+        : _v{ v }, _proj{ proj } {}
 
     bool operator! () const noexcept
     {
@@ -78,6 +79,11 @@ int* calc_value_null() noexcept
     return nullptr;
 }
 
+int ref_f(int& i) noexcept
+{
+    return i;
+}
+
 
 struct record
 {
@@ -88,8 +94,8 @@ struct record
 
 int main()
 {
-    int i = 5;
-    int* pi = &i;
+    const int i = 5;
+    const int* pi = &i;
     std::unique_ptr<int> up = std::make_unique<int>(3);
 
     // the below lines are equivalent
@@ -105,21 +111,24 @@ int main()
     const int r1 = s4::value_or(i,  pi, o, up, sp, wp);
     std::cout << r1 << std::endl;  // prints 5 because the 1st pointer not null is pi
     
-    // the default value can be a pointer to a function that will be called only if no null pointer has been found
-    int r2 = s4::value_or(calc_default_value, nullptr);
+    // the default value can be an invokable that will be called only if no null pointer has been found
+    const int r2 = s4::value_or(calc_default_value, nullptr);
     std::cout << r2 << std::endl;  // prints 14 the calculated default value 
     
-    int r2b = s4::value_or(calc_default_value, pi);
+    const int r2b = s4::value_or(calc_default_value, pi);
     std::cout << r2b << std::endl; // prints 5, the value pointed by pi 
 
-    // it is possible to specify the type of the return value, of the the default value and of all the arguments
-    int r2c = s4::value_or<int, int&, int*&, std::optional<int>&>(i, pi, o);
+    // it is possible to specify the type of the return value, of the default value and of all the arguments
+    const int r2c = s4::value_or<int, const int&, const int*&, std::optional<int>&>(i, pi, o);
     std::cout << r2c << std::endl; // prints 5, the value pointed by pi 
 
+    const int r2d = s4::value_or( []() { return 14; }, nullptr );
+    std::cout << r2d << std::endl;  // prints 14 the calculated default value 
+
     // the below lines are equivalent 
-    int r2d = s4::value_or(2, o);
-    int r2e = o.value_or(2);
-    std::cout << r2d << "=" << r2e << std::endl;
+    const int r2e = s4::value_or(2, o);
+    const int r2f = o.value_or(2);
+    std::cout << r2e << "=" << r2f << std::endl;
 
 
     // other examples with more complex types
@@ -162,12 +171,8 @@ int main()
 
     fu fn; 
     const int r7b = s4::value_or(3, fn); 
-    std::cout << r7b << std::endl; // it prints 2, the default value because fn points to no function
-
-    fu fd = calc_value;
-    std::unique_ptr<fu> pf = std::make_unique<fu>(fn);
-
-    
+    std::cout << r7b << std::endl; // it prints 3, the default value because fn points to no function
+       
 
     // let's say that we have a data feed that we want to process, and for each record we must use the 1st value not null, if there is
     std::vector<record> s1
@@ -177,7 +182,7 @@ int main()
         {{}, {}}
     };
     
-    int r8 = std::accumulate(s1.begin(), s1.end(), 0,
+    const int r8 = std::accumulate(s1.begin(), s1.end(), 0,
         [](int i, const record& r) { return i + s4::value_or(0, r.v1, r.v2);  });
     std::cout << r8 << std::endl; // prints 30 = 10 + 20 + 0
 
@@ -197,7 +202,7 @@ int main()
     };
 
 
-    int r9 = std::accumulate(s2.begin(), s2.end(), 0,
+    const int r9 = std::accumulate(s2.begin(), s2.end(), 0,
         [](int i, const record& r) 
         { return i + 
             s4::value_or(0, r.v1, 
@@ -209,11 +214,31 @@ int main()
 
     struct_i si;
     struct_i* psi = &si;
-    int r10 = s4::value_or(10, test_project(psi, &struct_i::getI));
+    const int r10 = s4::value_or(10, test_project(psi, &struct_i::getI));
     std::cout << r10 << std::endl;  // prints 15 the value of si.i
   
     std::cout << s4::value_or(std::string("d"), test_string(""), test_string("v")) << std::endl;
-     
+    // prints "v"  
+
+    int d = 5;
+    int i2 = 10;
+    int* pi2 = &i2;
+    const int r11 = ref_f(s4::value_or(d, pi2));  // in this case the return value of value_or is an lvalue, 
+                                                  // therefore it can be based as reference to ref_f
+    std::cout << r11 << std::endl;  // prints 10 the value of i2
+
+
+    const int r11b = ref_f(s4::value_or(d, calc_value())); // the return value of value_or is an lvalue, 
+                                                           // therefore it can be based as reference to ref_f
+    std::cout << r11b << std::endl;  // prints 123 the value of pointed by the pointer returned by calc_value()
+
+    //const int r11c = ref_f(s4::value_or(1, calc_value())); // ERROR: the return value of value_or is an rvalue
+                                                             // because the default value is an rvalue
+
+    //const int r11d = ref_f(s4::value_or(d, p12, wp)); // ERROR: the return value of value_or is an rvalue
+                                                        // because one of the parameters is a weak_pointer
+
+
     return 0;
 }
 
