@@ -255,10 +255,17 @@ void test_ptr_value_or(DT &default_value, T &value, PT &p, PT &n, PT &empty_ptr)
         EXPECT_EQ(t(value_or(default_value, n, p)), value);
         EXPECT_EQ(t(value_or(default_value, p, n)), value);
 
+        func_obj fp{ p };
+
+        EXPECT_EQ(t(value_or(func_obj{ default_value }, n)), default_value);
+        EXPECT_EQ(t(value_or(default_value, fp)), value);
+        EXPECT_EQ(t(value_or(default_value, nullptr, fp)), value);
+        EXPECT_EQ(t(value_or(func_obj{ default_value }, n, fp)), value);
+        EXPECT_EQ(t(value_or(func_obj{ default_value }, p, n)), value);
+
 
         EXPECT_EQ(value_or(func_obj{ default_value }, n), default_value);
-
-        func_obj fp{ p };
+                
         EXPECT_EQ(value_or(default_value, fp), value);
         EXPECT_EQ(value_or(default_value, func_obj{ p }), value);
         EXPECT_EQ(value_or(default_value, func_obj{ n }), default_value);
