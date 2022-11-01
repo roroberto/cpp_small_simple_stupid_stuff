@@ -244,8 +244,8 @@ int main()
     int* to_test1 = &value;
     int r = !to_test0 ? (!to_test1 ? d1 : *to_test1) : *to_test0;
     // ... eqivalent to ...
-    int r1 = s4::value_or(d1, to_test0, to_test1);
-    std::cout << r << " = " << r1 << std::endl;
+    int r12 = s4::value_or(d1, to_test0, to_test1);
+    std::cout << r << " = " << r11 << std::endl;
 
 
     return 0;
