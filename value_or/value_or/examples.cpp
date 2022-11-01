@@ -238,6 +238,15 @@ int main()
     //const int r11d = ref_f(s4::value_or(d, p12, wp)); // ERROR: the return value of value_or is an rvalue
                                                         // because one of the parameters is a weak_pointer
 
+    int d1 = 1;
+    int value = 2;
+    int* to_test0 = &value;
+    int* to_test1 = &value;
+    int r = !to_test0 ? (!to_test1 ? d1 : *to_test1) : *to_test0;
+    // ... eqivalent to ...
+    int r1 = s4::value_or(d1, to_test0, to_test1);
+    std::cout << r << " = " << r1 << std::endl;
+
 
     return 0;
 }
