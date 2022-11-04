@@ -51,7 +51,6 @@ public:
     }
 
 private:
-    //const std::string _s;
     std::string_view _s;
 };
 
@@ -201,8 +200,6 @@ int main()
         {{},    2},
         {{},   {}}
     };
-
-    
 
     const int r9 = std::accumulate(s2.begin(), s2.end(), 0,
         [](int i, const record& r) 
