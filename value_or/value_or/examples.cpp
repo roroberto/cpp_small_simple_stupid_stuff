@@ -40,18 +40,19 @@ class test_string
 public:
     test_string(std::string_view v) : _s{ v } {}
 
-    operator bool () const noexcept
+    constexpr operator bool () const noexcept
     {
         return !_s.empty();
     }
 
-    const std::string operator *()
+    constexpr const std::string_view operator *()
     {
         return _s;
     }
 
 private:
-    const std::string _s;
+    //const std::string _s;
+    std::string_view _s;
 };
 
 
@@ -201,6 +202,7 @@ int main()
         {{},   {}}
     };
 
+    
 
     const int r9 = std::accumulate(s2.begin(), s2.end(), 0,
         [](int i, const record& r) 
@@ -216,9 +218,21 @@ int main()
     struct_i* psi = &si;
     const int r10 = s4::value_or(10, test_project(psi, &struct_i::getI));
     std::cout << r10 << std::endl;  // prints 15 the value of si.i
+
+
+    std::vector<std::vector<std::string>> s3 =
+    {
+        {"", "h"},
+        {"i", ""}
+    };
+
+    for (std::vector<std::string> vs : s3)
+    {
+        std::cout << s4::value_or(std::string_view(""), test_string(vs[0]), test_string(vs[1]));
+    }
+    std::cout << std::endl;
   
-    std::cout << s4::value_or(std::string("d"), test_string(""), test_string("v")) << std::endl;
-    // prints "v"  
+   
 
     int d = 5;
     int i2 = 10;
@@ -247,6 +261,11 @@ int main()
     int r12 = s4::value_or(d1, to_test0, to_test1);
     std::cout << r << " = " << r11 << std::endl;
 
+    const int cd = 2;
+    std::unique_ptr<const int> up2 = std::make_unique<const int>(2);
+    std::shared_ptr<int> sp2 = std::make_shared<int>(3);
+    int r13 = s4::value_or(cd, up2, sp2);
+    std::cout << r13 << std::endl; // prints 2
 
     return 0;
 }
