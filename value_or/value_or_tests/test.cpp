@@ -326,7 +326,7 @@ void test_value_or(DT default_value, T1 init_value1, T2 init_value2, T3 init_val
     EXPECT_EQ(value_or(default_value, n, upn, spn, wp, on), init_value3);
     EXPECT_EQ(value_or(default_value, n, upn, spn, wpn, o), init_value4);
     EXPECT_EQ(value_or(default_value, n, upn, spn, o, wpn), init_value4);
-
+    
     EXPECT_EQ(value_or(test_f<DT>(), nullptr), test_f<DT>());
     EXPECT_EQ(value_or(test_f<DT>(), test_f<T1*>()), test_f<T1>());
     EXPECT_EQ(value_or(test_f<DT>(), test_f<T1*>(), test_f<T2*>()), test_f<T1>());
@@ -375,6 +375,16 @@ TEST(Testvalue_or, ConstIntVectorTest)
     test_value_or(def_ints, ints1, ints2, ints3, ints4);
 }
 
+TEST(Testvalue_or, ConstNonConstIntVectorTest)
+{
+    const vect ints1{ 1,1,2,3,4,5 };
+    const vect ints2{ 2,1,2,3,4,5 };
+    vect ints3{ 3,1,2,3,4,5 };
+    vect ints4{ 4,1,2,3,4,5 };
+    vect def_ints{ 6, 7 };
+    test_value_or(def_ints, ints1, ints2, ints3, ints4);
+}
+
 TEST(Testvalue_or, StringTest)
 {
     std::string s1 = "a" ;
@@ -395,6 +405,16 @@ TEST(Testvalue_or, ConstStringTest)
     test_value_or(def, s1, s2, s3, s4);
 }
 
+TEST(Testvalue_or, ConstNonConstStringTest)
+{
+    std::string s1 = "a";
+    std::string s2 = "b";
+    const std::string s3 = "c";
+    const std::string s4 = "d";
+    const std::string def = "z";
+    test_value_or(def, s1, s2, s3, s4);
+}
+
 TEST(Testvalue_or, DerivedObj)
 {
     A a{ 1 };
@@ -409,7 +429,7 @@ TEST(Testvalue_or, DerivedObj)
 int* fnull() { return nullptr; }
 int* fint(int& i) { return &i; }
 
-TEST(Testvalue_or, StdFunction)
+TEST(Testvalue_or, FunctionPtrs)
 {
 
     std::function<int* ()> pfNotInit;
@@ -422,4 +442,14 @@ TEST(Testvalue_or, StdFunction)
     int i = 11;
     EXPECT_EQ(value_or(10, pfInt(i)), 11);
     EXPECT_EQ(value_or(10, pfNotInit, pfNull, pfInt(i)), 11);
+
+    int* (*ppfNull)() = nullptr;
+    EXPECT_EQ(value_or(10, ppfNull), 10);
+
+    int* (*ppfInt)(int&) = &fint;
+    int ii = 12;
+    EXPECT_EQ(value_or(10, ppfInt(ii)), 12);
+    EXPECT_EQ(value_or(10, ppfNull, ppfInt(ii)), 12);
+
+    EXPECT_EQ(value_or(10, pfNotInit, ppfNull, pfInt(i), ppfInt(ii)), 11);
 }

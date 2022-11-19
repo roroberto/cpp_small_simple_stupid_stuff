@@ -35,6 +35,16 @@ private:
 };
 
 
+class test_and_convert
+{
+public: 
+    test_and_convert(const std::optional<int> &v) : _v{ v } {}
+    constexpr explicit operator bool() const noexcept { return _v.has_value(); }
+    constexpr int operator*() const noexcept { return *_v * 1000;  }
+private:
+    const std::optional<int>& _v;
+};
+
 class test_string
 {
 public:
@@ -163,16 +173,35 @@ int main()
 
    
     // also std::function can be passed, in this case it will test also that the object of type std::function points to a function
-    using fu = std::function<int* ()>;
-    fu f = l_null;
-       
-    const int r7 = s4::value_or(2, f);
+    using fi = int* ();
+    using fu = std::function<fi>;
+    fu f1{};
+
+    const int r7 = s4::value_or(2, f1);
     std::cout << r7 << std::endl; // it prints 2, the default value because l_null, the function pointed by f, returns nullptr
 
     fu fn; 
     const int r7b = s4::value_or(3, fn); 
     std::cout << r7b << std::endl; // it prints 3, the default value because fn points to no function
-       
+
+    fu fln = l_null;
+    const int r7c = s4::value_or(4, fln);
+    std::cout << r7c << std::endl; // it prints 4, the default value because fln points to l_null that return nullptr
+
+    int* (*ptr_fun)() noexcept = &calc_value;
+    const int r7d = s4::value_or(5, ptr_fun);
+    std::cout << r7d << std::endl; // it prints 123, the value returned by calc_value
+
+    int* (*ptr_funn)() noexcept = nullptr;
+    const int r7e = s4::value_or(6, ptr_funn);
+    std::cout << r7e << std::endl; // it prints 6, the default value
+
+
+    using ffu = std::function<fu* ()>;
+    ffu ffu1{};
+    fu fdefault{ &calc_value };
+    //fu r7d = s4::value_or(fdefault, ffu1);
+      
 
     // let's say that we have a data feed that we want to process, and for each record we must use the 1st value not null, if there is
     std::vector<record> s1
@@ -202,14 +231,24 @@ int main()
     };
 
     const int r9 = std::accumulate(s2.begin(), s2.end(), 0,
-        [](int i, const record& r) 
-        { return i + 
+        [](int tot, const record& r) 
+        { return tot + 
             s4::value_or(0, r.v1, 
-                test_project(r.v2, [](int i) {return i * 1000; })); // with the help of test_project and a lambda 
+                test_project(r.v2, [](int v) {return v * 1000; })); // with the help of test_project and a lambda 
                                                                     // we convert the second field in grams
         }
     );
     std::cout << r9 << std::endl;  // prints 3000 = 1000 + 2 * 1000
+
+    const int r9a = std::accumulate(s2.begin(), s2.end(), 0,
+        [](int tot, const record& r)
+        { return tot +
+        s4::value_or(0, r.v1,
+            test_and_convert(r.v2)); // with the help of test_and_convert it converts the second field in grams
+        }
+    );
+    std::cout << r9a << std::endl;  // prints 3000 = 1000 + 2 * 1000
+
 
     struct_i si;
     struct_i* psi = &si;
@@ -263,6 +302,15 @@ int main()
     std::shared_ptr<int> sp2 = std::make_shared<int>(3);
     int r13 = s4::value_or(cd, up2, sp2);
     std::cout << r13 << std::endl; // prints 2
+
+    int def_from_user;
+    std::cin >> def_from_user;
+    std::optional<int> on;
+    if (def_from_user > 1) on = o;
+    std::shared_ptr<int> sn;
+    if (def_from_user > 2) sn = sp;
+    int r14 = s4::value_or(def_from_user, on, sn); // the compiler transform this just in a few tests, value_or has no overahead
+    std::cout << r14 << std::endl; 
 
     return 0;
 }
