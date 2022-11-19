@@ -174,6 +174,20 @@ namespace s4 // Small Simple Stupid Stuff namespace
         requires callable_ptr_to<RT, PT> 
         constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
 
+        /**
+         * Specialized version of value_or for callable where it is possible to test if the pointer to the 
+         * callable has a callable
+         *
+         * \param default_value Value to return if to_test_0 and all to_test_v are null
+         * \param to_test_0 First value to check
+         * \param ...to_test_v Next values to check. They will be passed in the next iteration of the recursion
+         * \return If to_test_0 is not null then it returns it, otherwise it looks for the first
+         *         element of to_test_v not null. If all the values are null then value_or returns default_value.
+         */
+        template<typename RT, typename DT, typename PT, typename... Args>
+        requires callable_ptr_to<RT, PT>
+        && requires (PT f) { {!f}; }
+        constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
 
         /**
          * Specialized version of value_or for nullptr_t.
@@ -257,35 +271,38 @@ namespace s4 // Small Simple Stupid Stuff namespace
                     std::forward<Args>(to_test_v)...)
                 : static_cast<RT>(*to_test_0);
         }
-
-        
-        template<typename... T>
-        struct is_std_function : std::false_type {};
-
-        template<typename... T>
-        struct is_std_function<std::function<T...>> : std::true_type {};
-
+               
 
         template<typename RT, typename DT, typename PT, typename... Args>
-        requires callable_ptr_to<RT, PT> 
+        requires callable_ptr_to<RT, PT>
         constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
         {
-            if constexpr (is_std_function< std::decay_t<PT> >::value)
-            {
-                if (!to_test_0)
-                {
-                    return value_or<RT, DT, Args...>(
-                        std::forward<DT>(default_value),
-                        std::forward<Args>(to_test_v)...);
-                }
-            }
-
             return value_or<RT, DT, std::invoke_result_t<PT>, Args...>(
                 std::forward<DT>(default_value),
                 std::forward<std::invoke_result_t<PT>>(to_test_0()),
                 std::forward<Args>(to_test_v)...);
         }
         
+
+        template<typename RT, typename DT, typename PT, typename... Args>
+        requires callable_ptr_to<RT, PT>  
+        && requires (PT f) { {!f}; }
+        constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
+        {
+            if (!to_test_0)
+            {
+                return value_or<RT, DT, Args...>(
+                    std::forward<DT>(default_value),
+                    std::forward<Args>(to_test_v)...);
+            }
+            else
+            {
+                return value_or<RT, DT, std::invoke_result_t<PT>, Args...>(
+                    std::forward<DT>(default_value),
+                    std::forward<std::invoke_result_t<PT>>(to_test_0()),
+                    std::forward<Args>(to_test_v)...);
+            }
+        }
 
 
         template<typename RT, typename DT, typename PT, typename... Args>
