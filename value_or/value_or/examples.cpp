@@ -18,7 +18,6 @@
 #include "value_or.h"
 
 
-
 template <typename Value, typename Proj>
 class test_project
 {
@@ -45,7 +44,7 @@ private:
 class test_and_convert
 {
 public: 
-    test_and_convert(const std::optional<int> &v) 
+    explicit test_and_convert(const std::optional<int> &v) 
         : _v{ v } {}
 
     test_and_convert operator=(const test_and_convert&) = delete;
@@ -68,7 +67,7 @@ private:
 class test_string
 {
 public:
-    test_string(std::string_view v) : _s{ v } {}
+    explicit test_string(std::string_view v) : _s{ v } {}
 
     constexpr explicit operator bool () const noexcept
     {
@@ -101,7 +100,7 @@ int* calc_value() noexcept
 }
 
 
-int ref_f(int& i) noexcept
+int ref_f(const int& i) noexcept
 {
     return i;
 }
@@ -252,7 +251,7 @@ int main()
     int* to_test0 = &value;
     int* to_test1 = &value;
     int r = !to_test0 ? (!to_test1 ? d1 : *to_test1) : *to_test0;
-    // ... eqivalent to ...
+    // ... equivalent to ...
     int r12 = s4::value_or(d1, to_test0, to_test1);
     std::cout << r << " = " << r12 << std::endl;
 
@@ -269,7 +268,7 @@ int main()
     if (def_from_user > 1) on = o;
     std::shared_ptr<int> sn;
     if (def_from_user > 2) sn = sp;
-    int r14 = s4::value_or(def_from_user, on, sn); // the compiler transform this just in a few tests, value_or has no overahead
+    int r14 = s4::value_or(def_from_user, on, sn); // the compiler transform this just in a few tests, value_or has no overhead
     std::cout << r14 << std::endl; 
 
     return 0;
