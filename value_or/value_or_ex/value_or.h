@@ -126,7 +126,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
          */
         template<typename RT, typename DT, typename PT, typename... Args>
         requires raw_pointer_to<PT, RT>
-        constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
 
         /**
          * Specialized version of value_or for weak_ptr.
@@ -139,7 +139,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
          */
         template<typename RT, typename DT, typename PT, typename... Args>
         requires weak_pointer_to<PT, RT> 
-        constexpr std::remove_reference_t<RT> value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
+        [[nodiscard]] constexpr std::remove_reference_t<RT> value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
 
 
         /**
@@ -154,7 +154,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
          */
         template<typename RT, typename DT, typename PT, typename... Args>
         requires std::convertible_to< PT, std::remove_reference_t<RT> > 
-        constexpr decltype(auto) value_or(DT&& default_value, std::shared_ptr<PT> to_test_0, Args&&... to_test_v);
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, std::shared_ptr<PT> to_test_0, Args&&... to_test_v);
 
 
         /**
@@ -168,7 +168,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
          */
         template<typename RT, typename DT, typename PT, typename... Args>
         requires callable_ptr_to<PT, RT> 
-        constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
 
         /**
          * Specialized version of value_or for callable where it is possible to test if the pointer to the 
@@ -183,7 +183,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
         template<typename RT, typename DT, typename PT, typename... Args>
         requires callable_ptr_to<PT, RT>
         && requires (PT f) { {!f}; }
-        constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v);
 
         /**
          * Specialized version of value_or for nullptr_t.
@@ -194,7 +194,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
          *         then value_or returns default_value.
          */
         template<typename RT, typename DT, typename PT, typename... Args>
-        constexpr decltype(auto) value_or(DT&& default_value, std::nullptr_t, Args&&... to_test_v);
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, std::nullptr_t, Args&&... to_test_v);
 
 
 
@@ -207,7 +207,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
         template<typename RT, typename DT>
         requires std::convertible_to< DT, std::remove_reference_t<RT> > 
             && (!std::invocable<DT>)
-        constexpr decltype(auto) value_or(DT&& default_value)
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value)
         {
             return static_cast<RT>(default_value);
         }
@@ -222,7 +222,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
         template<typename RT, typename DT>
         requires std::convertible_to< std::invoke_result_t<DT>, std::remove_reference_t<RT> >
             && std::invocable<DT>
-        constexpr decltype(auto) value_or(DT&& default_value)
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value)
         {
             return default_value();
         }
@@ -231,7 +231,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
 
         template<typename RT, typename DT, typename PT, typename... Args>
         requires raw_pointer_to<PT, RT> 
-        constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
         {
             return  
                 !to_test_0 
@@ -245,7 +245,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
 
         template<typename RT, typename DT, typename PT, typename... Args>
         requires weak_pointer_to<PT, RT> 
-        constexpr std::remove_reference_t<RT> value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
+        [[nodiscard]] constexpr std::remove_reference_t<RT> value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
         {
             if (auto t = to_test_0.lock())
                 return *t;
@@ -259,7 +259,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
 
         template<typename RT, typename DT, typename PT, typename... Args>
         requires std::convertible_to< PT, std::remove_reference_t<RT> > 
-        constexpr decltype(auto) value_or(DT&& default_value, std::shared_ptr<PT> to_test_0, Args&&... to_test_v)
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, std::shared_ptr<PT> to_test_0, Args&&... to_test_v)
         {
             return !to_test_0 
                 ? value_or<RT, DT, Args...>(
@@ -271,7 +271,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
 
         template<typename RT, typename DT, typename PT, typename... Args>
         requires callable_ptr_to<PT, RT>
-        constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
         {
             return value_or<RT, DT, std::invoke_result_t<PT>, Args...>(
                 std::forward<DT>(default_value),
@@ -283,7 +283,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
         template<typename RT, typename DT, typename PT, typename... Args>
         requires callable_ptr_to<PT, RT>  
         && requires (PT f) { {!f}; }
-        constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, PT&& to_test_0, Args&&... to_test_v)
         {
             if (!to_test_0)
             {
@@ -302,7 +302,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
 
 
         template<typename RT, typename DT, typename PT, typename... Args>
-        constexpr decltype(auto) value_or(DT&& default_value, std::nullptr_t, Args&&... to_test_v)
+        [[nodiscard]] constexpr decltype(auto) value_or(DT&& default_value, std::nullptr_t, Args&&... to_test_v)
         {
             return value_or<RT, DT, Args...>(
                     std::forward<DT>(default_value),
@@ -323,7 +323,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
     */
     template<typename ReturnType, typename DefaultType, value_or_param<ReturnType>... Args>
     requires std::convertible_to< DefaultType, std::remove_reference_t<ReturnType> >
-    constexpr ReturnType value_or(DefaultType&& default_value, Args&&... to_test_v)
+    [[nodiscard]] constexpr ReturnType value_or(DefaultType&& default_value, Args&&... to_test_v)
     {
         return s4::value_or_impl::value_or<ReturnType, DefaultType, Args...>(
             std::forward<DefaultType>(default_value),
@@ -336,7 +336,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
      */
     template<typename DefaultType, value_or_param<DefaultType>... Args>
     requires (!std::invocable<DefaultType>)
-    constexpr decltype(auto) value_or(DefaultType&& default_value, Args&&... to_test_v)
+    [[nodiscard]] constexpr decltype(auto) value_or(DefaultType&& default_value, Args&&... to_test_v)
     {
         return s4::value_or_impl::value_or<DefaultType, DefaultType, Args...>(
             std::forward<DefaultType>(default_value),
@@ -349,7 +349,7 @@ namespace s4 // Small Simple Stupid Stuff namespace
      */
     template<typename DefaultType, value_or_param<DefaultType>... Args>
     requires std::invocable<DefaultType>
-    constexpr std::invoke_result_t<DefaultType> value_or(DefaultType&& default_value, Args&&... to_test_v)
+    [[nodiscard]] constexpr std::invoke_result_t<DefaultType> value_or(DefaultType&& default_value, Args&&... to_test_v)
     {
         return s4::value_or_impl::value_or<std::invoke_result_t<DefaultType>, DefaultType, Args...>(
                 std::forward<DefaultType>(default_value),
