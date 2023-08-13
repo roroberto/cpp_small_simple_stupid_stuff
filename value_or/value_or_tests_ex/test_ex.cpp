@@ -4,6 +4,7 @@
 #pragma warning( disable : 26495 )
 #include "gtest/gtest.h"
 #include <optional>
+#include <functional>
 #pragma warning( pop )
 
 using namespace s4;

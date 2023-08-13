@@ -8,7 +8,6 @@
 #include <vector>
 #include <iostream>
 #include <vector>
-#include <functional>
 #include <numeric>
 #include <ranges>
 #include <string_view>

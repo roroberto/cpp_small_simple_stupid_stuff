@@ -15,10 +15,8 @@
 #ifndef __value_or_H
 #define __value_or_H
 
-#include <utility>
 #include <concepts>
 #include <memory>
-#include <functional>
 
 
 namespace s4 // Small Simple Stupid Stuff namespace 
