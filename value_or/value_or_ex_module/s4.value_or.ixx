@@ -7,6 +7,8 @@
  *         then it returns default_value. It is similar to the SQL
  *         function coalesce. It is also similar to the method value_or 
  *         of std::optional. 
+ *         The default value and the other parameters can be also 
+ *         invocable.
  * 
  * \author Roberto
  * \date   July 2022
